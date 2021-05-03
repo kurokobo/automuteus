@@ -3,6 +3,7 @@ package discord
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/automuteus/utils/pkg/game"
 	"github.com/denverquane/amongusdiscord/discord/setting"
 
@@ -170,6 +171,18 @@ func (bot *Bot) HandleSettingsCommand(s *discordgo.Session, m *discordgo.Message
 			break
 		}
 		isValid = SettingDisplayRoomCode(s, m, sett, args)
+	case setting.HistorySize:
+		if !prem {
+			s.ChannelMessageSend(m.ChannelID, nonPremiumSettingResponse(sett))
+			break
+		}
+		isValid = SettingHistorySize(s, m, sett, args)
+	case setting.TimeZone:
+		if !prem {
+			s.ChannelMessageSend(m.ChannelID, nonPremiumSettingResponse(sett))
+			break
+		}
+		isValid = SettingTimeZone(s, m, sett, args)
 	case setting.Show:
 		jBytes, err := json.MarshalIndent(sett, "", "  ")
 		if err != nil {
@@ -1152,5 +1165,85 @@ func SettingDisplayRoomCode(s *discordgo.Session, m *discordgo.MessageCreate, se
 				"Arg": val,
 			}))
 	}
+	return true
+}
+
+func SettingHistorySize(s *discordgo.Session, m *discordgo.MessageCreate, sett *storage.GuildSettings, args []string) bool {
+	if len(args) == 2 {
+		embed := ConstructEmbedForSetting(fmt.Sprintf("%d", sett.GetHistorySize()), setting.AllSettings[setting.HistorySize], sett)
+		s.ChannelMessageSendEmbed(m.ChannelID, &embed)
+		return false
+	}
+
+	num, err := strconv.ParseInt(args[2], 10, 64)
+	if err != nil {
+		s.ChannelMessageSend(m.ChannelID, sett.LocalizeMessage(&i18n.Message{
+			ID:    "settings.SettingHistorySize.Unrecognized",
+			Other: "{{.Number}} is not a valid number. See `{{.CommandPrefix}} settings historySize` for usage",
+		},
+			map[string]interface{}{
+				"Number":        args[2],
+				"CommandPrefix": sett.CommandPrefix,
+			}))
+		return false
+	}
+	if num > 30 || num < 1 {
+		s.ChannelMessageSend(m.ChannelID, sett.LocalizeMessage(&i18n.Message{
+			ID:    "settings.SettingHistorySize.OutOfRange",
+			Other: "You provided a number too high or too low. Please specify a number between [1-30]",
+		}))
+		return false
+	}
+
+	sett.SetHistorySize(int(num))
+
+	s.ChannelMessageSend(m.ChannelID, sett.LocalizeMessage(&i18n.Message{
+		ID:    "settings.SettingHistorySize.Success",
+		Other: "From now on, I'll display last {{.History}} match IDs in the list",
+	},
+		map[string]interface{}{
+			"History": num,
+		}))
+
+	return true
+}
+
+func SettingTimeZone(s *discordgo.Session, m *discordgo.MessageCreate, sett *storage.GuildSettings, args []string) bool {
+	if len(args) == 2 {
+		embed := ConstructEmbedForSetting(fmt.Sprintf("%.2f", sett.GetTimeZone()), setting.AllSettings[setting.TimeZone], sett)
+		s.ChannelMessageSendEmbed(m.ChannelID, &embed)
+		return false
+	}
+
+	num, err := strconv.ParseFloat(args[2], 32)
+	if err != nil {
+		s.ChannelMessageSend(m.ChannelID, sett.LocalizeMessage(&i18n.Message{
+			ID:    "settings.SettingTimeZone.Unrecognized",
+			Other: "{{.Number}} is not a valid number. See `{{.CommandPrefix}} settings timeZone` for usage",
+		},
+			map[string]interface{}{
+				"Number":        args[2],
+				"CommandPrefix": sett.CommandPrefix,
+			}))
+		return false
+	}
+	if num > 14.0 || num < -12.0 {
+		s.ChannelMessageSend(m.ChannelID, sett.LocalizeMessage(&i18n.Message{
+			ID:    "settings.SettingTimeZone.OutOfRange",
+			Other: "You provided a number too high or too low. Please specify a number between -12.0 and 14.0",
+		}))
+		return false
+	}
+
+	sett.SetTimeZone(float32(num))
+
+	s.ChannelMessageSend(m.ChannelID, sett.LocalizeMessage(&i18n.Message{
+		ID:    "settings.SettingTimeZone.Success",
+		Other: "From now on, I'll display the time using time difference {{.TimeZone}} from UTC in Stats",
+	},
+		map[string]interface{}{
+			"TimeZone": num,
+		}))
+
 	return true
 }

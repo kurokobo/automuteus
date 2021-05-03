@@ -21,6 +21,8 @@ const (
 	LeaderboardMin
 	MuteSpectators
 	DisplayRoomCode
+	HistorySize
+	TimeZone
 	Show
 	Reset
 	NullSetting
@@ -340,6 +342,44 @@ var AllSettings = []Setting{
 			Other: "<always/spoiler/never>",
 		},
 		Aliases: []string{"displayRoomCode", "roomcode", "code", "rc"},
+		Premium: true,
+	},
+	{
+		SettingType: HistorySize,
+		Name:        "historySize",
+		Example:     "historySize 20",
+		ShortDesc: &i18n.Message{
+			ID:    "settings.AllSettings.HistorySize.shortDesc",
+			Other: "History Size for Stats",
+		},
+		Description: &i18n.Message{
+			ID:    "settings.AllSettings.HistorySize.desc",
+			Other: "Specify the size of the guild history",
+		},
+		Arguments: &i18n.Message{
+			ID:    "settings.AllSettings.HistorySize.args",
+			Other: "<number>",
+		},
+		Aliases: []string{"histsize", "history", "hist"},
+		Premium: true,
+	},
+	{
+		SettingType: TimeZone,
+		Name:        "timeZone",
+		Example:     "timeZone 9",
+		ShortDesc: &i18n.Message{
+			ID:    "settings.AllSettings.TimeZone.shortDesc",
+			Other: "Adjust time difference in Stats",
+		},
+		Description: &i18n.Message{
+			ID:    "settings.AllSettings.TimeZone.desc",
+			Other: "Specify the time difference in hour from utc to adjust time in Stats",
+		},
+		Arguments: &i18n.Message{
+			ID:    "settings.AllSettings.TimeZone.args",
+			Other: "<number, between -12.0 and 14.0>",
+		},
+		Aliases: []string{"timezone", "tz", "time"},
 		Premium: true,
 	},
 	{

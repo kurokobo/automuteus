@@ -1,9 +1,10 @@
 package storage
 
 import (
-	"github.com/automuteus/utils/pkg/game"
 	"os"
 	"sync"
+
+	"github.com/automuteus/utils/pkg/game"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/denverquane/amongusdiscord/locale"
@@ -11,6 +12,7 @@ import (
 
 const DefaultLeaderboardSize = 3
 const DefaultLeaderboardMin = 3
+const DefaultHistorySize = 20
 
 type GuildSettings struct {
 	AdminUserIDs             []string        `json:"adminIDs"`
@@ -22,14 +24,16 @@ type GuildSettings struct {
 	Delays                   game.GameDelays `json:"delays"`
 	DeleteGameSummaryMinutes int             `json:"deleteGameSummary"`
 	lock                     sync.RWMutex
-	UnmuteDeadDuringTasks    bool   `json:"unmuteDeadDuringTasks"`
-	AutoRefresh              bool   `json:"autoRefresh"`
-	MatchSummaryChannelID    string `json:"matchSummaryChannelID"`
-	LeaderboardMention       bool   `json:"leaderboardMention"`
-	LeaderboardSize          int    `json:"leaderboardSize"`
-	LeaderboardMin           int    `json:"leaderboardMin"`
-	MuteSpectator            bool   `json:"muteSpectator"`
-	DisplayRoomCode          string `json:"displayRoomCode"`
+	UnmuteDeadDuringTasks    bool    `json:"unmuteDeadDuringTasks"`
+	AutoRefresh              bool    `json:"autoRefresh"`
+	MatchSummaryChannelID    string  `json:"matchSummaryChannelID"`
+	LeaderboardMention       bool    `json:"leaderboardMention"`
+	LeaderboardSize          int     `json:"leaderboardSize"`
+	LeaderboardMin           int     `json:"leaderboardMin"`
+	MuteSpectator            bool    `json:"muteSpectator"`
+	DisplayRoomCode          string  `json:"displayRoomCode"`
+	HistorySize              int     `json:"historySize"`
+	TimeZone                 float32 `json:"timeZone"`
 }
 
 func MakeGuildSettings() *GuildSettings {
@@ -235,4 +239,26 @@ func (gs *GuildSettings) GetDisplayRoomCode() string {
 
 func (gs *GuildSettings) SetDisplayRoomCode(r string) {
 	gs.DisplayRoomCode = r
+}
+
+func (gs *GuildSettings) GetHistorySize() int {
+	if gs.HistorySize > 30 || gs.HistorySize < 1 {
+		return DefaultHistorySize
+	}
+	return gs.HistorySize
+}
+
+func (gs *GuildSettings) SetHistorySize(v int) {
+	gs.HistorySize = v
+}
+
+func (gs *GuildSettings) GetTimeZone() float32 {
+	if gs.TimeZone > 14.0 || gs.TimeZone < -12.0 {
+		return 0
+	}
+	return gs.TimeZone
+}
+
+func (gs *GuildSettings) SetTimeZone(v float32) {
+	gs.TimeZone = v
 }
